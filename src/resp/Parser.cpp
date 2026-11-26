@@ -2,29 +2,29 @@
 // Created by david on 11/26/26.
 //
 
-#include "RESPParser.h"
+#include "Parser.h"
 
 #include <iostream>
 #include <ostream>
 #include <sstream>
 
-RESPParser::RESPParser() {
+Parser::Parser() {
 }
 
-RESPParser::~RESPParser() {
+Parser::~Parser() {
 }
 
 /*
  Check if the given command is valid (case-insensitive).
  Normalizes command to uppercase format.
  */
-bool RESPParser::isValidCommand(std::string &command) {
+bool Parser::isValidCommand(std::string &command) {
     std::transform(command.begin(), command.end(), command.begin(), ::toupper);
 
     return commandMap.contains(command);
 }
 
-std::vector<std::string> RESPParser::parseCommand(const char &buffer) {
+std::vector<std::string> Parser::parseCommand(const char &buffer) {
     std::vector<std::string> args;
 
 

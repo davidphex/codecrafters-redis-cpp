@@ -13,7 +13,7 @@ enum class Command {
     ECHO
 };
 
-class RESPParser {
+class Parser {
 private:
     inline static const std::unordered_map<std::string, Command> commandMap = {
         {"PING", Command::PING},
@@ -21,8 +21,8 @@ private:
     };
 
 public:
-    RESPParser();
-    ~RESPParser();
+    Parser();
+    ~Parser();
 
     /*
      * Takes in RESP array, returns a vector of elements

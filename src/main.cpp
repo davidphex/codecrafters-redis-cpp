@@ -11,7 +11,9 @@
 #include <sstream>
 #include <thread>
 
-#include "RESPParser.h"
+#include "Storage.h"
+#include "resp/Parser.h"
+#include "resp/Serializer.h"
 
 static void* serve_client(const int client_fd) {
 
@@ -25,7 +27,7 @@ static void* serve_client(const int client_fd) {
 
     std::cout << "Received command: " << buffer << "\n";
 
-    std::vector<std::string> elements = RESPParser::parseCommand(*buffer);
+    std::vector<std::string> elements = Parser::parseCommand(*buffer);
 
     if (elements.at(0) == "PING") {
 
@@ -46,6 +48,19 @@ static void* serve_client(const int client_fd) {
       oss << elements.at(1) << "\r\n";
 
       std::string response = oss.str();
+
+      send(client_fd, response.data(), response.length(), 0);
+    } else if (elements.at(0) == "SET") {
+
+      Storage::set(elements.at(1), elements.at(2));
+
+      std::string response = Serializer::serializeSimpleString("OK");
+
+      send(client_fd, response.data(), response.length(), 0);
+    } else if (elements.at(0) == "GET") {
+      std::string value = Storage::get(elements.at(1));
+
+      std::string response = Serializer::serializeBulkString(value);
 
       send(client_fd, response.data(), response.length(), 0);
     }
