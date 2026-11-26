@@ -7,12 +7,14 @@
 #include <string>
 #include <unordered_map>
 
+#include "Record.h"
+
 
 class Storage {
 protected:
     static constexpr std::string nullBulkString = "$-1\r\n";
 
-    static inline std::unordered_map<std::string, std::string> elements_ {};
+    static inline std::unordered_map<std::string, Record> elements_ {};
 
     Storage()= default;
 
@@ -24,6 +26,7 @@ public:
     static Storage& getInstance();
 
     static void set(const std::string& key, const std::string& value);
+    static void set(const std::string& key, const std::string& value, std::chrono::milliseconds);
     static std::string get(const std::string& key);
 };
 

@@ -10,7 +10,9 @@
 
 enum class Command {
     PING,
-    ECHO
+    ECHO,
+    SET,
+    GET
 };
 
 class Parser {
@@ -18,6 +20,8 @@ private:
     inline static const std::unordered_map<std::string, Command> commandMap = {
         {"PING", Command::PING},
         {"ECHO", Command::ECHO},
+        {"SET", Command::SET},
+        {"GET", Command::GET},
     };
 
 public:

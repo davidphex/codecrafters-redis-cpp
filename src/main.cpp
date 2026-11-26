@@ -11,6 +11,7 @@
 #include <sstream>
 #include <thread>
 
+#include "CommandHandler.h"
 #include "Storage.h"
 #include "resp/Parser.h"
 #include "resp/Serializer.h"
@@ -29,42 +30,48 @@ static void* serve_client(const int client_fd) {
 
     std::vector<std::string> elements = Parser::parseCommand(*buffer);
 
-    if (elements.at(0) == "PING") {
+    CommandHandler commandHandler;
 
-      std::cout << "Received PING\n";
+    commandHandler.addCommand("PING", [client_fd](const std::vector<std::string>& elements) {
+      const std::string response = Serializer::serializeSimpleString("PONG");
+      send(client_fd, response.data(), response.length(), 0);
+    });
 
-      std::string response = "+PONG\r\n";
+    commandHandler.addCommand("ECHO", [client_fd](const std::vector<std::string>& elements) {
+      const std::string response = Serializer::serializeBulkString(elements.at(1));
+      send(client_fd, response.data(), response.length(), 0);
+    });
+
+    commandHandler.addCommand("SET", [client_fd](const std::vector<std::string>& elements) {
+
+      // if it has PX or EX
+      if (elements.size() == 5) {
+        std::chrono::milliseconds expiresIn {};
+        if (elements.at(3) == "EX") {
+          // EX specifies the time in seconds
+          expiresIn = std::chrono::milliseconds(std::stoi(elements.at(4)) * 1000);
+        } else if (elements.at(3) == "PX") {
+          // PX specifies the time in milliseconds
+          expiresIn = std::chrono::milliseconds(std::stoi(elements.at(4)));
+        }
+        Storage::set(elements.at(1), elements.at(2), expiresIn);
+
+      } else {
+        Storage::set(elements.at(1), elements.at(2));
+      }
+
+      const std::string response = Serializer::serializeSimpleString("OK");
 
       send(client_fd, response.data(), response.length(), 0);
+    });
 
-    } else if (elements.at(0) == "ECHO") {
-
-      std::cout << "Received ECHO\n";
-      std::cout << elements.at(1) << "\n";
-
-      std::ostringstream oss;
-
-      oss << "$" << elements.at(1).length() << "\r\n";
-      oss << elements.at(1) << "\r\n";
-
-      std::string response = oss.str();
-
+    commandHandler.addCommand("GET", [client_fd](const std::vector<std::string>& elements) {
+      const std::string value = Storage::get(elements.at(1));
+      const std::string response = Serializer::serializeBulkString(value);
       send(client_fd, response.data(), response.length(), 0);
-    } else if (elements.at(0) == "SET") {
+    });
 
-      Storage::set(elements.at(1), elements.at(2));
-
-      std::string response = Serializer::serializeSimpleString("OK");
-
-      send(client_fd, response.data(), response.length(), 0);
-    } else if (elements.at(0) == "GET") {
-      std::string value = Storage::get(elements.at(1));
-
-      std::string response = Serializer::serializeBulkString(value);
-
-      send(client_fd, response.data(), response.length(), 0);
-    }
-
+    commandHandler.run(elements);
 
   }
 

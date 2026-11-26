@@ -15,7 +15,10 @@ add_executable(redis ${SOURCE_FILES}
         src/resp/Parser.h
         src/resp/Serializer.h
         src/Storage.cpp
-        src/Storage.h)
+        src/Storage.h
+        src/Record.h
+        src/CommandHandler.cpp
+        src/CommandHandler.h)
 
 target_link_libraries(redis PRIVATE asio asio::asio)
 target_link_libraries(redis PRIVATE Threads::Threads)
