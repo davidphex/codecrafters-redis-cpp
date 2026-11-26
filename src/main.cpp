@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <vector>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -10,6 +11,8 @@
 #include <thread>
 
 void* serve_client(int client_fd) {
+
+  std::cout << "Serving client connection...\n";
 
   while (true) {
     char buf[] = "+PONG\r\n";
@@ -21,6 +24,8 @@ void* serve_client(int client_fd) {
     send(client_fd, buf, strlen(buf), 0);
 
   }
+
+  close(client_fd);
 }
 
 int main(int argc, char **argv) {
@@ -78,8 +83,11 @@ int main(int argc, char **argv) {
 
     std::thread client_thread(serve_client, client_fd);
 
-    close(client_fd);
+    client_thread.detach();
   }
+
+  // join all threads before closing the main socket
+
 
 
   close(server_fd);
