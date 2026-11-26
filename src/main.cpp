@@ -7,6 +7,21 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <thread>
+
+void* serve_client(int client_fd) {
+
+  while (true) {
+    char buf[] = "+PONG\r\n";
+
+    char incoming_command[1024];
+
+    read(client_fd, incoming_command, 1024);
+
+    send(client_fd, buf, strlen(buf), 0);
+
+  }
+}
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -61,16 +76,7 @@ int main(int argc, char **argv) {
       std::cerr << "Client connection failed.\n";
     }
 
-    while (true) {
-      char buf[] = "+PONG\r\n";
-
-      char incoming_command[1024];
-
-      read(client_fd, incoming_command, 1024);
-
-      send(client_fd, buf, strlen(buf), 0);
-
-    }
+    std::thread client_thread(serve_client, client_fd);
 
     close(client_fd);
   }
