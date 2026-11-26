@@ -36,29 +36,46 @@ int main(int argc, char **argv) {
     std::cerr << "Failed to bind to port 6379\n";
     return 1;
   }
-  
+
+
+  // Maximum queued connections
   int connection_backlog = 5;
   if (listen(server_fd, connection_backlog) != 0) {
     std::cerr << "listen failed\n";
     return 1;
   }
-  
-  struct sockaddr_in client_addr;
-  int client_addr_len = sizeof(client_addr);
-  std::cout << "Waiting for a client to connect...\n";
 
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   std::cout << "Logs from your program will appear here!\n";
 
-  // Uncomment the code below to pass the first stage
-  // 
-  int new_con = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  std::cout << "Client connected\n";
+  while (true) {
 
-  char buf[] = "+PONG\r\n";
-  send(new_con, buf, strlen(buf), 0);
+    struct sockaddr_in client_addr;
+    int client_addr_len = sizeof(client_addr);
+    std::cout << "Waiting for a client to connect...\n";
 
-  // 
+    // Accept incoming connection and assign it a file descriptor
+    int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t*) &client_addr_len);
+
+    if (client_fd < 0) {
+      std::cerr << "Client connection failed.\n";
+    }
+
+    while (true) {
+      char buf[] = "+PONG\r\n";
+
+      char incoming_command[1024];
+
+      read(client_fd, incoming_command, 1024);
+
+      send(client_fd, buf, strlen(buf), 0);
+
+    }
+
+    close(client_fd);
+  }
+
+
   close(server_fd);
 
   return 0;
