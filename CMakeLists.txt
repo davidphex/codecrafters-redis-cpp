@@ -12,8 +12,8 @@ find_package(asio CONFIG REQUIRED)
 
 add_executable(redis ${SOURCE_FILES}
         src/main.cpp
-        src/main.cpp
-        src/main.cpp)
+        src/RESPParser.cpp
+        src/RESPParser.h)
 
 target_link_libraries(redis PRIVATE asio asio::asio)
 target_link_libraries(redis PRIVATE Threads::Threads)

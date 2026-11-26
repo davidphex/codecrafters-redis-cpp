@@ -8,20 +8,48 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sstream>
 #include <thread>
 
-void* serve_client(int client_fd) {
+#include "RESPParser.h"
+
+static void* serve_client(const int client_fd) {
 
   std::cout << "Serving client connection...\n";
 
   while (true) {
-    char buf[] = "+PONG\r\n";
 
-    char incoming_command[1024];
+    char buffer[1024];
 
-    read(client_fd, incoming_command, 1024);
+    read(client_fd, buffer, 1024);
 
-    send(client_fd, buf, strlen(buf), 0);
+    std::cout << "Received command: " << buffer << "\n";
+
+    std::vector<std::string> elements = RESPParser::parseCommand(*buffer);
+
+    if (elements.at(0) == "PING") {
+
+      std::cout << "Received PING\n";
+
+      std::string response = "+PONG\r\n";
+
+      send(client_fd, response.data(), response.length(), 0);
+
+    } else if (elements.at(0) == "ECHO") {
+
+      std::cout << "Received ECHO\n";
+      std::cout << elements.at(1) << "\n";
+
+      std::ostringstream oss;
+
+      oss << "$" << elements.at(1).length() << "\r\n";
+      oss << elements.at(1) << "\r\n";
+
+      std::string response = oss.str();
+
+      send(client_fd, response.data(), response.length(), 0);
+    }
+
 
   }
 
