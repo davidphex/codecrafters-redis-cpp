@@ -27,7 +27,7 @@ public:
 
     static void set(const std::string& key, const std::string& value);
     static void set(const std::string& key, const std::string& value, std::chrono::milliseconds);
-    static std::string get(const std::string& key);
+    static std::optional<std::string> get(const std::string& key);
 };
 
 

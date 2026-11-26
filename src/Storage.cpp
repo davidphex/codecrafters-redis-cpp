@@ -19,18 +19,16 @@ void Storage::set(const std::string &key, const std::string &value, std::chrono:
     elements_.insert({key, Record(value, expiresIn)});
 }
 
-std::string Storage::get(const std::string &key) {
+std::optional<std::string> Storage::get(const std::string &key) {
     if (elements_.contains(key)) {
 
         const auto& record = elements_.at(key);
 
-        std::cout << "Record " << key << " expires " << record.expires_at() << ", time right now: " << std::chrono::system_clock::now() << '\n';
-
         if (std::chrono::system_clock::now() > record.expires_at()) {
-            return nullBulkString;
+            return std::nullopt;
         }
 
         return record.value();
     }
-    return nullBulkString;
+    return std::nullopt;
 }

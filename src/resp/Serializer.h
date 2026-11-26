@@ -10,6 +10,8 @@
 class Serializer {
 private:
 public:
+    static constexpr std::string nullBulkString = "$-1\r\n";
+
     Serializer() = default;
     ~Serializer() = default;
 

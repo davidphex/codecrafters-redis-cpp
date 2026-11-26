@@ -26,8 +26,6 @@ static void* serve_client(const int client_fd) {
 
     read(client_fd, buffer, 1024);
 
-    std::cout << "Received command: " << buffer << "\n";
-
     std::vector<std::string> elements = Parser::parseCommand(*buffer);
 
     CommandHandler commandHandler;
@@ -66,9 +64,16 @@ static void* serve_client(const int client_fd) {
     });
 
     commandHandler.addCommand("GET", [client_fd](const std::vector<std::string>& elements) {
-      const std::string value = Storage::get(elements.at(1));
-      const std::string response = Serializer::serializeBulkString(value);
-      send(client_fd, response.data(), response.length(), 0);
+      const std::optional<std::string> value = Storage::get(elements.at(1));
+
+      if (value) {
+        const std::string response = Serializer::serializeBulkString(*value);
+        send(client_fd, response.data(), response.length(), 0);
+      } else {
+        send(client_fd, Serializer::nullBulkString.data(), Serializer::nullBulkString.length(), 0);
+      }
+
+
     });
 
     commandHandler.run(elements);
