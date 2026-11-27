@@ -12,7 +12,8 @@ enum class Command {
     PING,
     ECHO,
     SET,
-    GET
+    GET,
+    RPUSH
 };
 
 class Parser {
@@ -22,6 +23,7 @@ private:
         {"ECHO", Command::ECHO},
         {"SET", Command::SET},
         {"GET", Command::GET},
+        {"RPUSH", Command::RPUSH},
     };
 
 public:
