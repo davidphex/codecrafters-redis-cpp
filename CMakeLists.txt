@@ -18,7 +18,17 @@ add_executable(redis ${SOURCE_FILES}
         src/storage/RedisObject.h
         src/CommandHandler.cpp
         src/CommandHandler.h
-        src/storage/StorageEngine.cpp)
+        src/storage/StorageEngine.cpp
+        src/network/Server.cpp
+        src/network/Server.h
+        src/network/Socket.h
+        src/network/Connection.h
+        src/network/Poller.cpp
+        src/network/Poller.h
+        src/CommandRouter.cpp
+        src/CommandRouter.h
+        src/network/Socket.cpp
+        src/network/Connection.cpp)
 
 target_link_libraries(redis PRIVATE asio asio::asio)
 target_link_libraries(redis PRIVATE Threads::Threads)

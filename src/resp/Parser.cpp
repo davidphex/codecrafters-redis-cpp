@@ -5,14 +5,6 @@
 #include "Parser.h"
 
 #include <iostream>
-#include <ostream>
-#include <sstream>
-
-Parser::Parser() {
-}
-
-Parser::~Parser() {
-}
 
 /*
  Check if the given command is valid (case-insensitive).
@@ -24,58 +16,61 @@ bool Parser::isValidCommand(std::string &command) {
     return commandMap.contains(command);
 }
 
-std::vector<std::string> Parser::parseCommand(const char &buffer) {
-    std::vector<std::string> args;
-
-
-    try {
-        std::istringstream ss(&buffer);
-
-        // check the number of elements
-        size_t numberOfElements;
-
-        // ignore the leading *
-        if (ss.get(); ss >> numberOfElements && numberOfElements > 0) {
-            if (ss.peek() == '\r') ss.get();
-            if (ss.peek() == '\n') ss.get();
-        } else {
-            throw std::invalid_argument("Invalid number of elements " + std::to_string(numberOfElements));
-        }
-
-        // extract strings
-        for (size_t i {0}; i < numberOfElements; ++i) {
-
-            size_t elementLength {};
-            std::string element {};
-
-            // ignore the leading $
-            if (ss.get(); ss >> elementLength and elementLength > 0) {
-                if (ss.peek() == '\r') ss.get();
-                if (ss.peek() == '\n') ss.get();
-            } else {
-                throw std::invalid_argument("Invalid element length " + std::to_string(elementLength));
-            }
-
-            if (ss >> element and element.length() == elementLength) {
-
-                if (ss.peek() == '\r') ss.get();
-                if (ss.peek() == '\n') ss.get();
-
-                args.emplace_back(element);
-
-            } else {
-                throw std::invalid_argument("Invalid element " + element);
-            }
-        }
-
-        // check if the first element is a valid command
-        if (not isValidCommand(args.at(0))){
-            throw std::invalid_argument("Invalid command " + args.at(0));
-        }
-
-    } catch (std::exception &e) {
-        std::cerr << e.what() << std::endl;
+std::optional<std::vector<std::string>> Parser::parseCommand(std::string& buffer) {
+    // Parse one RESP command from the front of the buffer:
+    //   *<count>\r\n followed by <count> bulk strings $<len>\r\n<payload>\r\n
+    // Only a fully received command is consumed; partial commands leave the
+    // buffer untouched so the rest can be parsed once more bytes arrive.
+    if (buffer.empty() || buffer[0] != '*') {
+        return std::nullopt;
     }
+
+    size_t pos = 1; // skip the leading '*'
+
+    // Reads the \r\n-terminated line at pos as an integer, advancing pos
+    const auto readIntLine = [&buffer, &pos](long long& out) -> bool {
+        const size_t end = buffer.find("\r\n", pos);
+        if (end == std::string::npos) return false;
+
+        try {
+            out = std::stoll(buffer.substr(pos, end - pos));
+        } catch (const std::exception&) {
+            return false;
+        }
+
+        pos = end + 2;
+        return true;
+    };
+
+    long long numberOfElements {};
+    if (!readIntLine(numberOfElements) || numberOfElements <= 0) {
+        return std::nullopt;
+    }
+
+    std::vector<std::string> args;
+    args.reserve(static_cast<size_t>(numberOfElements));
+
+    for (long long i {}; i < numberOfElements; ++i) {
+        if (pos >= buffer.size() || buffer[pos] != '$') {
+            return std::nullopt;
+        }
+        ++pos; // skip the leading '$'
+
+        long long elementLength {};
+        if (!readIntLine(elementLength) || elementLength < 0) {
+            return std::nullopt;
+        }
+
+        // payload + trailing \r\n must both be present
+        if (buffer.size() < pos + static_cast<size_t>(elementLength) + 2) {
+            return std::nullopt;
+        }
+
+        args.emplace_back(buffer, pos, static_cast<size_t>(elementLength));
+        pos += static_cast<size_t>(elementLength) + 2;
+    }
+
+    buffer.erase(0, pos);
 
     return args;
 }

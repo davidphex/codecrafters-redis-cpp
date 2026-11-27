@@ -13,6 +13,7 @@ class Serializer {
 private:
 public:
     static constexpr std::string nullBulkString = "$-1\r\n";
+    static constexpr std::string nullArray = "*-1\r\n";
 
     Serializer() = default;
     ~Serializer() = default;
@@ -43,6 +44,13 @@ public:
      * @return
      */
     static std::string serializeArray(const std::vector<std::string>&);
+
+    /**
+     * RESP2 null array, sent when BLPOP times out
+     * https://redis.io/docs/latest/develop/reference/protocol-spec/#arrays
+     * @return
+     */
+    static std::string serializeNullArray();
 };
 
 #endif //REDIS_STARTER_CPP_RESPSERIALIZER_H

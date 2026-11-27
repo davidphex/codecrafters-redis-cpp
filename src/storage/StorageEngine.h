@@ -14,10 +14,17 @@ enum class StorageError {
     WrongType
 };
 
+struct StringHash {
+    using is_transparent = void;
+    size_t operator()(std::string_view sv) const noexcept {
+        return std::hash<std::string_view>{}(sv);
+    }
+};
+
 class StorageEngine {
 private:
 
-    std::unordered_map<std::string, RedisObject> elements_ {};
+    std::unordered_map<std::string, RedisObject, StringHash, std::equal_to<>> elements_ {};
 
     static bool isExpired(const RedisObject& object) {
         return object.expiresAt.has_value() and std::chrono::system_clock::now() >= object.expiresAt.value();
@@ -25,8 +32,13 @@ private:
 
 public:
 
-    void set(const std::string& key, const std::string& value);
-    void set(const std::string& key, const std::string& value, std::chrono::milliseconds);
+    /**
+     * Sets key value, with possibility of setting expiry time
+     * If key exists, it overwrites the existing one
+     * @param key
+     * @param value
+     */
+    void set(std::string_view key, std::string_view value, std::optional<std::chrono::milliseconds> = std::nullopt);
 
     /**
      * Appends value to end of the list_key list. If list doesn't exist, it creates a new one
@@ -34,7 +46,7 @@ public:
      * @param value
      * @return the number of elements in the list
      */
-    size_t rpush(const std::string& list_key, const std::string& value);
+    size_t rpush(std::string_view list_key, std::string_view value);
 
     /**
      * Appends value to the beginning of the list_key list. If list doesn't exist, it creates a new one
@@ -42,7 +54,7 @@ public:
      * @param value
      * @return the number of elements in the list
      */
-    size_t lpush(const std::string& list_key, const std::string& value);
+    size_t lpush(std::string_view list_key, std::string_view value);
 
     /**
      * Retrieves elements from list_key list from lower to upper (inclusive).
@@ -56,7 +68,7 @@ public:
      * @param stop
      * @return list of items
      */
-    std::vector<std::string> lrange(const std::string& list_key, std::ptrdiff_t start, std::ptrdiff_t stop);
+    std::vector<std::string> lrange(std::string_view list_key, std::ptrdiff_t start, std::ptrdiff_t stop);
 
 
     /**
@@ -64,7 +76,7 @@ public:
      * @param list_key size_t
      * @return
      */
-    size_t llen(const std::string& list_key);
+    size_t llen(std::string_view list_key);
 
     /**
      * Removes and returns the first element of the list.
@@ -72,7 +84,7 @@ public:
      * @param list_key
      * @return
      */
-    std::optional<std::string> lpop(const std::string& list_key);
+    std::optional<std::string> lpop(std::string_view list_key);
 
 
     /**
@@ -81,10 +93,10 @@ public:
      * @param numOfElements
      * @return
      */
-    std::vector<std::string> lpop(const std::string& list_key, size_t numOfElements);
+    std::vector<std::string> lpop(std::string_view list_key, size_t numOfElements);
 
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
-    GetResult get(const std::string &key);
+    GetResult get(std::string_view key);
 };
 
 

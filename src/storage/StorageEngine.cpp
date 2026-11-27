@@ -6,21 +6,23 @@
 
 #include <filesystem>
 
-void StorageEngine::set(const std::string &key, const std::string &value) {
-    elements_.emplace(key, RedisObject {
-        .value = value,
-        .expiresAt = std::nullopt
-    });
+
+void StorageEngine::set(std::string_view key, std::string_view value, std::optional<std::chrono::milliseconds> expires_in ) {
+    // no expiry time
+    if (!expires_in.has_value()) {
+        elements_.emplace(key, RedisObject {
+            .value = value.data(),
+            .expiresAt = std::nullopt
+        });
+    } else {
+        elements_.emplace(key, RedisObject {
+            .value = value.data(),
+            .expiresAt = std::chrono::system_clock::now() + expires_in.value()
+        });
+    }
 }
 
-void StorageEngine::set(const std::string &key, const std::string &value, std::chrono::milliseconds expiresIn) {
-    elements_.emplace(key, RedisObject {
-        .value = value,
-        .expiresAt = std::chrono::system_clock::now() + expiresIn
-    });
-}
-
-size_t StorageEngine::rpush(const std::string &list_key, const std::string &value) {
+size_t StorageEngine::rpush(std::string_view list_key, std::string_view value) {
     const auto it = elements_.find(list_key);
 
     // the list doesn't exist, we need to create it
@@ -28,7 +30,7 @@ size_t StorageEngine::rpush(const std::string &list_key, const std::string &valu
         elements_.emplace(
             list_key,
             RedisObject {
-                .value = std::deque<std::string>{value},
+                .value = std::deque<std::string>{std::string(value)},
                 .expiresAt = std::nullopt
             }
         );
@@ -45,7 +47,7 @@ size_t StorageEngine::rpush(const std::string &list_key, const std::string &valu
 }
 
 
-size_t StorageEngine::lpush(const std::string &list_key, const std::string &value) {
+size_t StorageEngine::lpush(std::string_view list_key, std::string_view value) {
     const auto it = elements_.find(list_key);
 
     // the list doesn't exist, we need to create it
@@ -53,7 +55,7 @@ size_t StorageEngine::lpush(const std::string &list_key, const std::string &valu
         elements_.emplace(
             list_key,
             RedisObject {
-                .value = std::deque<std::string>{value},
+                .value = std::deque<std::string>{std::string(value)},
                 .expiresAt = std::nullopt
             }
         );
@@ -69,7 +71,7 @@ size_t StorageEngine::lpush(const std::string &list_key, const std::string &valu
     return 0;
 }
 
-std::vector<std::string> StorageEngine::lrange(const std::string &list_key, std::ptrdiff_t start, std::ptrdiff_t stop) {
+std::vector<std::string> StorageEngine::lrange(std::string_view list_key, std::ptrdiff_t start, std::ptrdiff_t stop) {
     // check if key exists
     const auto it = elements_.find(list_key);
 
@@ -122,7 +124,7 @@ std::vector<std::string> StorageEngine::lrange(const std::string &list_key, std:
     return {};
 }
 
-size_t StorageEngine::llen(const std::string &list_key) {
+size_t StorageEngine::llen(std::string_view list_key) {
     const auto it = elements_.find(list_key);
 
     if (it == elements_.end()) {
@@ -136,7 +138,7 @@ size_t StorageEngine::llen(const std::string &list_key) {
     return 0;
 }
 
-std::optional<std::string> StorageEngine::lpop(const std::string &list_key) {
+std::optional<std::string> StorageEngine::lpop(std::string_view list_key) {
     const auto it = elements_.find(list_key);
 
     if (it == elements_.end()) {
@@ -157,7 +159,7 @@ std::optional<std::string> StorageEngine::lpop(const std::string &list_key) {
     return std::nullopt;
 }
 
-std::vector<std::string> StorageEngine::lpop(const std::string &list_key, size_t numOfElements) {
+std::vector<std::string> StorageEngine::lpop(std::string_view list_key, size_t numOfElements) {
     const auto it = elements_.find(list_key);
 
     if (it == elements_.end()) {
@@ -186,7 +188,7 @@ std::vector<std::string> StorageEngine::lpop(const std::string &list_key, size_t
     return {};
 }
 
-StorageEngine::GetResult StorageEngine::get(const std::string &key) {
+StorageEngine::GetResult StorageEngine::get(std::string_view key) {
     const auto it = elements_.find(key);
 
     if (it == elements_.end()) {

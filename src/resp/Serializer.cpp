@@ -55,3 +55,7 @@ std::string Serializer::serializeArray(const std::vector<std::string> & elements
 
     return oss.str();
 }
+
+std::string Serializer::serializeNullArray() {
+    return std::string(nullArray);
+}
