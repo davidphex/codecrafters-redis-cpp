@@ -122,6 +122,20 @@ std::vector<std::string> StorageEngine::lrange(const std::string &list_key, std:
     return {};
 }
 
+size_t StorageEngine::llen(const std::string &list_key) {
+    const auto it = elements_.find(list_key);
+
+    if (it == elements_.end()) {
+        return 0; // key not found
+    }
+
+    if (const auto* list = std::get_if<RedisList>(&it->second.value)) {
+        return list->size();
+    }
+
+    return 0;
+}
+
 StorageEngine::GetResult StorageEngine::get(const std::string &key) {
     const auto it = elements_.find(key);
 

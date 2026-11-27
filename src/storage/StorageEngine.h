@@ -58,6 +58,14 @@ public:
      */
     std::vector<std::string> lrange(const std::string& list_key, std::ptrdiff_t start, std::ptrdiff_t stop);
 
+
+    /**
+     * Returns the length of the list. Returns 0 if list doesn't exist
+     * @param list_key size_t
+     * @return
+     */
+    size_t llen(const std::string& list_key);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(const std::string &key);
 };
