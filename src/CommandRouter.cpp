@@ -177,6 +177,22 @@ void CommandRouter::register_defaults() {
 
         return Serializer::serializeSimpleString(type_name.value().data());
     });
+
+    register_command("XADD", 5, 99, [](StorageEngine& storage_engine, CommandArgs args, int) {
+
+        const auto& stream_key = args[1];
+        const auto& entry_id = args[2];
+
+        // iterate through all fields
+        std::vector<Field> fields;
+        for (auto it = args.begin()+3; it != args.end(); it = it+2) {
+            fields.emplace_back(it->data(), (it+1)->data());
+        }
+
+        auto result = storage_engine.xadd(stream_key, entry_id, fields);
+
+        return Serializer::serializeBulkString(result.to_string());
+    });
 }
 
 void CommandRouter::serve_blocked(const std::string& key) {

@@ -103,6 +103,14 @@ public:
      */
     std::optional<std::string_view> type(std::string_view key);
 
+    /**
+     * Adds multiple key value pairs to a stream with stream_key
+     * @param stream_key the key of the stream
+     * @param fields
+     * @return the ID of the entry
+     */
+    StreamID xadd(std::string_view stream_key, std::string_view raw_entry_id, std::vector<Field> fields);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(std::string_view key);
 };

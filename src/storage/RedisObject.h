@@ -9,16 +9,20 @@
 #include <string>
 #include <variant>
 
+#include "Stream.h"
+
 using TimePoint = std::chrono::system_clock::time_point;
 
 using RedisString = std::string;
 using RedisList = std::deque<std::string>;
+using RedisStream = Stream;
 
-using RedisValue = std::variant<RedisString, RedisList>;
+using RedisValue = std::variant<RedisString, RedisList, RedisStream>;
 
 constexpr std::array<std::string_view, std::variant_size_v<RedisValue>> RedisValueTypeNames = {
     "string",
     "list",
+    "stream",
 };
 
 constexpr std::string_view get_type_name(const RedisValue& v) {

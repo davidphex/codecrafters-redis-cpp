@@ -198,6 +198,35 @@ std::optional<std::string_view> StorageEngine::type(std::string_view key) {
     return get_type_name(it->second.value);
 }
 
+StreamID StorageEngine::xadd(std::string_view stream_key, std::string_view raw_entry_id, std::vector<Field> fields) {
+
+    auto it = elements_.find(stream_key);
+
+    auto entry_id = StreamID::parse(raw_entry_id);
+
+    if (!entry_id) {
+        return {};
+    }
+
+    // if stream doesn't exist, we need to create the stream first
+    if (it == elements_.end()) {
+        elements_.emplace(stream_key.data(), Stream());
+        it = elements_.find(stream_key.data());
+    }
+
+    if (auto* stream = std::get_if<RedisStream>(&it->second.value)) {
+        // append the key value pairs to the stream
+
+        stream->append(*entry_id, std::move(fields));
+
+
+        return *entry_id;
+    }
+
+
+    return StreamID{};
+}
+
 StorageEngine::GetResult StorageEngine::get(std::string_view key) {
     const auto it = elements_.find(key);
 
