@@ -29,12 +29,20 @@ public:
     void set(const std::string& key, const std::string& value, std::chrono::milliseconds);
 
     /**
-     * Appends value to list_key list. If list doesn't exist, it creates a new one
+     * Appends value to end of the list_key list. If list doesn't exist, it creates a new one
      * @param list_key
      * @param value
      * @return the number of elements in the list
      */
     size_t rpush(const std::string& list_key, const std::string& value);
+
+    /**
+     * Appends value to the beginning of the list_key list. If list doesn't exist, it creates a new one
+     * @param list_key
+     * @param value
+     * @return the number of elements in the list
+     */
+    size_t lpush(const std::string& list_key, const std::string& value);
 
     /**
      * Retrieves elements from list_key list from lower to upper (inclusive).

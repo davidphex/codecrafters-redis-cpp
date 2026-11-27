@@ -13,7 +13,9 @@ enum class Command {
     ECHO,
     SET,
     GET,
-    RPUSH
+    RPUSH,
+    LPUSH,
+    LRANGE,
 };
 
 class Parser {
@@ -24,6 +26,8 @@ private:
         {"SET", Command::SET},
         {"GET", Command::GET},
         {"RPUSH", Command::RPUSH},
+        {"LPUSH", Command::LPUSH},
+        {"LRANGE", Command::LRANGE},
     };
 
 public:

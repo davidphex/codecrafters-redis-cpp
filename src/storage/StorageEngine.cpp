@@ -44,6 +44,31 @@ size_t StorageEngine::rpush(const std::string &list_key, const std::string &valu
     return 0;
 }
 
+
+size_t StorageEngine::lpush(const std::string &list_key, const std::string &value) {
+    const auto it = elements_.find(list_key);
+
+    // the list doesn't exist, we need to create it
+    if (it == elements_.end()) {
+        elements_.emplace(
+            list_key,
+            RedisObject {
+                .value = std::deque<std::string>{value},
+                .expiresAt = std::nullopt
+            }
+        );
+        return 1;
+    }
+
+    // when adding, check for it to be a list
+    if (auto* list= std::get_if<RedisList>(&it->second.value)) {
+        list->emplace_front(value);
+        return list->size();
+    }
+
+    return 0;
+}
+
 std::vector<std::string> StorageEngine::lrange(const std::string &list_key, std::ptrdiff_t start, std::ptrdiff_t stop) {
     // check if key exists
     const auto it = elements_.find(list_key);

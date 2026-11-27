@@ -109,6 +109,27 @@ static void* serve_client(const int client_fd) {
 
     });
 
+    commandHandler.addCommand("LPUSH", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
+      if (elements.size() < 3) {
+        std::cerr << "Wrong number of arguments\n";
+        return;
+      }
+
+      const auto& list_key = elements.at(1);
+
+      size_t lastSize{};
+
+      for (auto iterator = elements.begin() + 2; iterator != elements.end(); ++iterator) {
+        lastSize = storageEngine.lpush(list_key, *iterator);
+      }
+
+      const auto response = Serializer::serializeInteger(static_cast<int64_t>(lastSize));
+
+      send(client_fd, response.data(), response.length(), 0);
+
+
+    });
+
     commandHandler.addCommand("LRANGE", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
       if (elements.size() < 4) {
         std::cerr << "Wrong number of arguments\n";
