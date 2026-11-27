@@ -16,6 +16,16 @@ using RedisList = std::deque<std::string>;
 
 using RedisValue = std::variant<RedisString, RedisList>;
 
+constexpr std::array<std::string_view, std::variant_size_v<RedisValue>> RedisValueTypeNames = {
+    "string",
+    "list",
+};
+
+constexpr std::string_view get_type_name(const RedisValue& v) {
+    if (v.valueless_by_exception()) return "invalid";
+    return RedisValueTypeNames[v.index()];
+}
+
 struct RedisObject {
     RedisValue value;
     std::optional<TimePoint> expiresAt;

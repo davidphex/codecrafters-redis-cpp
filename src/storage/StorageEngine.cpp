@@ -188,6 +188,16 @@ std::vector<std::string> StorageEngine::lpop(std::string_view list_key, size_t n
     return {};
 }
 
+std::optional<std::string_view> StorageEngine::type(std::string_view key) {
+    auto it = elements_.find(key);
+
+    if (it == elements_.end()) {
+        return std::nullopt;
+    }
+
+    return get_type_name(it->second.value);
+}
+
 StorageEngine::GetResult StorageEngine::get(std::string_view key) {
     const auto it = elements_.find(key);
 

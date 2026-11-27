@@ -95,6 +95,14 @@ public:
      */
     std::vector<std::string> lpop(std::string_view list_key, size_t numOfElements);
 
+    /**
+     * Returns the type of the value stored at the given key.
+     * If key isn't found, returns std::nullopt
+     * @param key
+     * @return
+     */
+    std::optional<std::string_view> type(std::string_view key);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(std::string_view key);
 };

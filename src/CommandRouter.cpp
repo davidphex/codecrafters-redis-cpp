@@ -165,6 +165,18 @@ void CommandRouter::register_defaults() {
       // no immediate reply, the response is delivered by serve_blocked or tick
       return std::nullopt;
     });
+
+    register_command("TYPE", 2, 2, [](StorageEngine& storage_engine, CommandArgs args,int) {
+        const auto& key = args[1];
+
+        auto type_name = storage_engine.type(key);
+
+        if (!type_name.has_value()) {
+            return Serializer::serializeSimpleString("none");
+        }
+
+        return Serializer::serializeSimpleString(type_name.value().data());
+    });
 }
 
 void CommandRouter::serve_blocked(const std::string& key) {
