@@ -168,9 +168,17 @@ static void* serve_client(const int client_fd) {
 
       const auto& list_key = elements.at(1);
 
-      const auto firstElem = storageEngine.lpop(list_key);
+      std::string response {};
+      if (elements.size() == 2) {
+        const auto singleElement = storageEngine.lpop(list_key);
 
-      const auto response = Serializer::serializeBulkString(firstElem);
+        response = Serializer::serializeBulkString(singleElement);
+      } else if (elements.size() == 3) {
+        const auto multipleElements = storageEngine.lpop(list_key, std::stoi(elements.at(2)));
+
+        response = Serializer::serializeArray(multipleElements);
+      }
+
 
       send(client_fd, response.data(), response.length(), 0);
     });

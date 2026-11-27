@@ -157,6 +157,35 @@ std::optional<std::string> StorageEngine::lpop(const std::string &list_key) {
     return std::nullopt;
 }
 
+std::vector<std::string> StorageEngine::lpop(const std::string &list_key, size_t numOfElements) {
+    const auto it = elements_.find(list_key);
+
+    if (it == elements_.end()) {
+        return {}; // key not found
+    }
+
+    if (auto* list = std::get_if<RedisList>(&it->second.value)) {
+
+        if (list->empty()) {
+            return {};
+        }
+
+        if (list->size() < numOfElements) {
+            numOfElements = list->size();
+        }
+
+        std::vector<std::string> result;
+        for (size_t i{}; i<numOfElements; ++i) {
+            result.emplace_back(list->front());
+            list->pop_front();
+        }
+
+        return result;
+    }
+
+    return {};
+}
+
 StorageEngine::GetResult StorageEngine::get(const std::string &key) {
     const auto it = elements_.find(key);
 

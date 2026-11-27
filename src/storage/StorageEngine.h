@@ -74,6 +74,15 @@ public:
      */
     std::optional<std::string> lpop(const std::string& list_key);
 
+
+    /**
+     * Removes and returns the first numOfElements of the list.
+     * @param list_key
+     * @param numOfElements
+     * @return
+     */
+    std::vector<std::string> lpop(const std::string& list_key, size_t numOfElements);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(const std::string &key);
 };
