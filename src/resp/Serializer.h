@@ -34,6 +34,14 @@ public:
      * @return encoded RESP integer string
      */
     static std::string serializeInteger(int64_t);
+
+
+    /**
+     * https://redis.io/docs/latest/develop/reference/protocol-spec/#arrays
+     * If array is empty, *0\r\n
+     * @return
+     */
+    static std::string serializeArray(const std::vector<std::string>&);
 };
 
 #endif //REDIS_STARTER_CPP_RESPSERIALIZER_H

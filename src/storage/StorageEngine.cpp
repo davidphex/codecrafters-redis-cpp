@@ -4,6 +4,8 @@
 
 #include "StorageEngine.h"
 
+#include <filesystem>
+
 void StorageEngine::set(const std::string &key, const std::string &value) {
     elements_.emplace(key, RedisObject {
         .value = value,
@@ -40,6 +42,45 @@ size_t StorageEngine::rpush(const std::string &list_key, const std::string &valu
     }
 
     return 0;
+}
+
+std::vector<std::string> StorageEngine::lrange(const std::string &list_key, size_t start, size_t stop) {
+    // check if key exists
+    const auto it = elements_.find(list_key);
+
+    if (it==elements_.end()) {
+        return {}; // key not found
+    }
+
+    // check if found object is a RedisList
+    if (const auto* list = std::get_if<RedisList>(&it->second.value)) {
+
+        if (list->empty()) {
+            return {};
+        }
+
+        if (start > stop) {
+            return {};
+        }
+
+        if (start >= list->size()) {
+            return {};
+        }
+
+        if (stop >= list->size()) {
+            stop = list->size()-1;
+        }
+
+        std::vector<std::string> result;
+        for (size_t i{start}; i<=stop; ++i) {
+            result.emplace_back(list->at(i));
+        }
+
+        return result;
+
+    }
+
+    return {};
 }
 
 StorageEngine::GetResult StorageEngine::get(const std::string &key) {

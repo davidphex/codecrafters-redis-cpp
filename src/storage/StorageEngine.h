@@ -36,6 +36,19 @@ public:
      */
     size_t rpush(const std::string& list_key, const std::string& value);
 
+    /**
+     * Retrieves elements from list_key list from lower to upper (inclusive).
+     * If list doesn't exist, returns empty array.
+     * If start >= list.size(), return empty array
+     * If stop >= list.size(), then stop = list.size()-1
+     * If start > stop, return empty array
+     * @param list_key
+     * @param start
+     * @param stop
+     * @return list of items
+     */
+    std::vector<std::string> lrange(const std::string& list_key, size_t start, size_t stop);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(const std::string &key);
 };

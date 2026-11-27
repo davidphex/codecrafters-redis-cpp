@@ -32,3 +32,20 @@ std::string Serializer::serializeInteger(const int64_t integer) {
 
     return oss.str();
 }
+
+std::string Serializer::serializeArray(const std::vector<std::string> & elements) {
+    std::ostringstream oss;
+
+    if (elements.empty()) {
+        oss << "*0\r\n";
+
+        return oss.str();
+    }
+
+    oss << "*" << elements.size() << "\r\n";
+    for (const auto & element : elements) {
+        oss << serializeBulkString(element);
+    }
+
+    return oss.str();
+}

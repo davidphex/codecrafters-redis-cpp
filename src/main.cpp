@@ -109,6 +109,23 @@ static void* serve_client(const int client_fd) {
 
     });
 
+    commandHandler.addCommand("LRANGE", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
+      if (elements.size() < 4) {
+        std::cerr << "Wrong number of arguments\n";
+        return;
+      }
+
+      const auto& list_key = elements.at(1);
+
+      const auto listItems = storageEngine.lrange(
+        list_key, std::stoi(elements.at(2)), std::stoi(elements.at(3))
+      );
+
+      const auto response = Serializer::serializeArray(listItems);
+
+      send(client_fd, response.data(), response.length(), 0);
+    });
+
     commandHandler.run(elements);
 
   }
