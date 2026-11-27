@@ -39,6 +39,7 @@ public:
     /**
      * Retrieves elements from list_key list from lower to upper (inclusive).
      * If list doesn't exist, returns empty array.
+     * Indices can be negative. Normalize indices before validating.
      * If start >= list.size(), return empty array
      * If stop >= list.size(), then stop = list.size()-1
      * If start > stop, return empty array
@@ -47,7 +48,7 @@ public:
      * @param stop
      * @return list of items
      */
-    std::vector<std::string> lrange(const std::string& list_key, size_t start, size_t stop);
+    std::vector<std::string> lrange(const std::string& list_key, std::ptrdiff_t start, std::ptrdiff_t stop);
 
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(const std::string &key);

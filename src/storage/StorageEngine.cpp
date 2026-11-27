@@ -44,7 +44,7 @@ size_t StorageEngine::rpush(const std::string &list_key, const std::string &valu
     return 0;
 }
 
-std::vector<std::string> StorageEngine::lrange(const std::string &list_key, size_t start, size_t stop) {
+std::vector<std::string> StorageEngine::lrange(const std::string &list_key, std::ptrdiff_t start, std::ptrdiff_t stop) {
     // check if key exists
     const auto it = elements_.find(list_key);
 
@@ -59,6 +59,20 @@ std::vector<std::string> StorageEngine::lrange(const std::string &list_key, size
             return {};
         }
 
+        // normalize indices
+        if (start < 0) {
+            // if abs(start) is greater or equal than the list size, treat it as start = 0
+            if (std::abs(start) >= list->size()) {
+                start = 0;
+            } else {
+                start = static_cast<std::ptrdiff_t>(list->size()) + start;
+            }
+        }
+
+        if (stop < 0) {
+            stop = static_cast<std::ptrdiff_t>(list->size()) + stop;
+        }
+
         if (start > stop) {
             return {};
         }
@@ -68,11 +82,11 @@ std::vector<std::string> StorageEngine::lrange(const std::string &list_key, size
         }
 
         if (stop >= list->size()) {
-            stop = list->size()-1;
+            stop = static_cast<std::ptrdiff_t>(list->size())-1;
         }
 
         std::vector<std::string> result;
-        for (size_t i{start}; i<=stop; ++i) {
+        for (std::ptrdiff_t i{start}; i<=stop; ++i) {
             result.emplace_back(list->at(i));
         }
 
