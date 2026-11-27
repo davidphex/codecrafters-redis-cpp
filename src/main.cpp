@@ -12,13 +12,15 @@
 #include <thread>
 
 #include "CommandHandler.h"
-#include "Storage.h"
+#include "storage/StorageEngine.h"
 #include "resp/Parser.h"
 #include "resp/Serializer.h"
 
 static void* serve_client(const int client_fd) {
 
   std::cout << "Serving client connection...\n";
+
+  StorageEngine storageEngine{};
 
   while (true) {
 
@@ -40,8 +42,10 @@ static void* serve_client(const int client_fd) {
       send(client_fd, response.data(), response.length(), 0);
     });
 
-    commandHandler.addCommand("SET", [client_fd](const std::vector<std::string>& elements) {
+    commandHandler.addCommand("SET", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
 
+      const std::string& key = elements.at(1);
+      const std::string& value = elements.at(2);
       // if it has PX or EX
       if (elements.size() == 5) {
         std::chrono::milliseconds expiresIn {};
@@ -52,10 +56,10 @@ static void* serve_client(const int client_fd) {
           // PX specifies the time in milliseconds
           expiresIn = std::chrono::milliseconds(std::stoi(elements.at(4)));
         }
-        Storage::set(elements.at(1), elements.at(2), expiresIn);
+        storageEngine.set(key, value, expiresIn);
 
       } else {
-        Storage::set(elements.at(1), elements.at(2));
+        storageEngine.set(key, value);
       }
 
       const std::string response = Serializer::serializeSimpleString("OK");
@@ -63,15 +67,41 @@ static void* serve_client(const int client_fd) {
       send(client_fd, response.data(), response.length(), 0);
     });
 
-    commandHandler.addCommand("GET", [client_fd](const std::vector<std::string>& elements) {
-      const std::optional<std::string> value = Storage::get(elements.at(1));
+    commandHandler.addCommand("GET", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
 
-      if (value) {
-        const std::string response = Serializer::serializeBulkString(*value);
-        send(client_fd, response.data(), response.length(), 0);
-      } else {
-        send(client_fd, Serializer::nullBulkString.data(), Serializer::nullBulkString.length(), 0);
+      auto result = storageEngine.get(elements.at(1));
+
+      constexpr std::string_view nullBlank = "$-1\r\n";
+
+      if (!result.has_value()) {
+        send(client_fd, nullBlank.data(), nullBlank.length(), 0);
+        return;
       }
+
+      if (!result->has_value()) {
+        send(client_fd, nullBlank.data(), nullBlank.length(), 0);
+        return;
+      }
+
+      auto response = Serializer::serializeBulkString(result->value().data());
+      send(client_fd, response.data(), response.length(), 0);
+
+    });
+
+    commandHandler.addCommand("RPUSH", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
+      if (elements.size() != 3) {
+        std::cerr << "Wrong number of arguments\n";
+        return;
+      }
+
+      const auto& list_key = elements.at(1);
+      const auto& value = elements.at(2);
+
+      size_t list_size = storageEngine.rpush(list_key, value);
+
+      auto response = Serializer::serializeInteger(static_cast<int64_t>(list_size));
+
+      send(client_fd, response.data(), response.length(), 0);
 
 
     });

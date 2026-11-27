@@ -22,3 +22,13 @@ std::string Serializer::serializeSimpleString(const std::string& str) {
 
     return oss.str();
 }
+
+std::string Serializer::serializeInteger(const int64_t integer) {
+    std::ostringstream oss;
+
+    // :[<-|+>]<value>\r\n
+
+    oss << ":" << integer << "\r\n";
+
+    return oss.str();
+}

@@ -5,6 +5,7 @@
 #ifndef REDIS_STARTER_CPP_RESPSERIALIZER_H
 #define REDIS_STARTER_CPP_RESPSERIALIZER_H
 #include <string>
+#include <vector>
 
 
 class Serializer {
@@ -25,6 +26,14 @@ public:
         https://redis.io/docs/latest/develop/reference/protocol-spec/#simple-strings
      */
     static std::string serializeSimpleString(const std::string&);
+
+
+    /**
+     * https://redis.io/docs/latest/develop/reference/protocol-spec/#integers
+     * encodes base-10, 64-bit integer into RESP integer string
+     * @return encoded RESP integer string
+     */
+    static std::string serializeInteger(int64_t);
 };
 
 #endif //REDIS_STARTER_CPP_RESPSERIALIZER_H
