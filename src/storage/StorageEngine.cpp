@@ -136,6 +136,27 @@ size_t StorageEngine::llen(const std::string &list_key) {
     return 0;
 }
 
+std::optional<std::string> StorageEngine::lpop(const std::string &list_key) {
+    const auto it = elements_.find(list_key);
+
+    if (it == elements_.end()) {
+        return std::nullopt; // key not found
+    }
+
+    if (auto* list = std::get_if<RedisList>(&it->second.value)) {
+
+        if (list->empty()) {
+            return std::nullopt;
+        }
+
+        auto firstElement = list->front();
+        list->pop_front();
+        return firstElement;
+    }
+
+    return std::nullopt;
+}
+
 StorageEngine::GetResult StorageEngine::get(const std::string &key) {
     const auto it = elements_.find(key);
 

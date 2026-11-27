@@ -160,6 +160,21 @@ static void* serve_client(const int client_fd) {
       send(client_fd, response.data(), response.length(), 0);
     });
 
+    commandHandler.addCommand("LPOP", [client_fd, &storageEngine](const std::vector<std::string>& elements) {
+      if (elements.size() < 2) {
+        std::cerr << "Wrong number of arguments\n";
+        return;
+      }
+
+      const auto& list_key = elements.at(1);
+
+      const auto firstElem = storageEngine.lpop(list_key);
+
+      const auto response = Serializer::serializeBulkString(firstElem);
+
+      send(client_fd, response.data(), response.length(), 0);
+    });
+
     commandHandler.run(elements);
 
   }

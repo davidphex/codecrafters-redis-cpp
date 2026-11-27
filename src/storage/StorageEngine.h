@@ -66,6 +66,14 @@ public:
      */
     size_t llen(const std::string& list_key);
 
+    /**
+     * Removes and returns the first element of the list.
+     * If the list is empty or doesn't exist, it returns std::nullopt
+     * @param list_key
+     * @return
+     */
+    std::optional<std::string> lpop(const std::string& list_key);
+
     using GetResult = std::expected<std::optional<std::string_view>, StorageError>;
     GetResult get(const std::string &key);
 };

@@ -4,6 +4,7 @@
 
 #ifndef REDIS_STARTER_CPP_RESPSERIALIZER_H
 #define REDIS_STARTER_CPP_RESPSERIALIZER_H
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,7 @@ public:
         Serializes std::string into RESP bulk string
         https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings
      */
-    static std::string serializeBulkString(const std::string&);
+    static std::string serializeBulkString(const std::optional<std::string_view> &str);
     /*
         Serializes std::string into RESP simple string
         https://redis.io/docs/latest/develop/reference/protocol-spec/#simple-strings

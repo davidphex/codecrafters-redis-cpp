@@ -6,11 +6,17 @@
 
 #include <sstream>
 
-std::string Serializer::serializeBulkString(const std::string& str) {
+std::string Serializer::serializeBulkString(const std::optional<std::string_view> &str) {
     std::ostringstream oss;
 
-    oss << "$" << str.length() << "\r\n";
-    oss << str << "\r\n";
+    if (!str.has_value()) {
+        oss << nullBulkString;
+
+        return oss.str();
+    }
+
+    oss << "$" << str.value().length() << "\r\n";
+    oss << str.value() << "\r\n";
 
     return oss.str();
 }
